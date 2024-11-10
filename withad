@@ -1,0 +1,24 @@
+func queryActiveDirectory(displayName string) {
+	// Define the AD controller and base DN (replace with actual values)
+	adController := "ldaps://your-ad-controller.example.com" // Use ldaps:// for secure connection or ldap:// for unsecured
+	baseDN := "dc=example,dc=com" // Adjust base DN to match your AD domain
+
+	// Construct the ldapsearch command with the AD controller and the base DN
+	cmd := exec.Command("ldapsearch", 
+		"-H", adController,      // Specify the AD server
+		"-LLL", 
+		"-o", "ldif-wrap=no", 
+		"-b", baseDN,            // Specify the base DN
+		fmt.Sprintf("(displayName=%s)", displayName), // Filter by displayName
+		"displayName", "sAMAccountName", "mail", "distinguishedName") // Requested attributes
+
+	// Run the command and capture the output
+	output, err := cmd.Output()
+	if err != nil {
+		fmt.Printf("Error querying Active Directory: %v\n", err)
+		return
+	}
+
+	// Print the output to display the user's attributes
+	fmt.Println(string(output))
+}
