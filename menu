@@ -1,0 +1,89 @@
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"os/exec"
+	"strconv"
+	"strings"
+)
+
+// Function to display the menu
+func displayMenu() {
+	fmt.Println("CLI Menu")
+	fmt.Println("1. Query Active Directory")
+	fmt.Println("2. Option 2")
+	fmt.Println("3. Option 3")
+	fmt.Println("4. Exit")
+	fmt.Print("Please choose an option: ")
+}
+
+// Function to query Active Directory with sssd
+func queryActiveDirectory(displayName string) {
+	// Construct the ldapsearch command to get specified attributes
+	cmd := exec.Command("ldapsearch", 
+		"-LLL", 
+		"-o", "ldif-wrap=no", 
+		"-b", "dc=example,dc=com", // Adjust base DN to match your AD domain
+		fmt.Sprintf("(displayName=%s)", displayName),
+		"displayName", "sAMAccountName", "mail", "distinguishedName")
+
+	// Run the command and capture the output
+	output, err := cmd.Output()
+	if err != nil {
+		fmt.Printf("Error querying Active Directory: %v\n", err)
+		return
+	}
+
+	// Print the output to display the user's attributes
+	fmt.Println(string(output))
+}
+
+// Handler function for option 1
+func option1() {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print("Enter displayName to search: ")
+	displayName, _ := reader.ReadString('\n')
+	displayName = strings.TrimSpace(displayName)
+
+	fmt.Printf("Searching Active Directory for displayName: %s\n", displayName)
+	queryActiveDirectory(displayName)
+}
+
+func main() {
+	reader := bufio.NewReader(os.Stdin)
+
+	for {
+		displayMenu()
+
+		// Read user input
+		input, err := reader.ReadString('\n')
+		if err != nil {
+			fmt.Println("Error reading input, please try again.")
+			continue
+		}
+
+		// Trim whitespace and parse the input
+		choice, err := strconv.Atoi(strings.TrimSpace(input))
+		if err != nil {
+			fmt.Println("Invalid input, please enter a number.")
+			continue
+		}
+
+		// Switch case to handle different options
+		switch choice {
+		case 1:
+			option1()
+		case 2:
+			fmt.Println("You selected Option 2.")
+		case 3:
+			fmt.Println("You selected Option 3.")
+		case 4:
+			fmt.Println("Exiting...")
+			return
+		default:
+			fmt.Println("Invalid choice, please try again.")
+		}
+	}
+}
